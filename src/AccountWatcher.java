@@ -17,7 +17,6 @@ public class AccountWatcher extends Thread {
                 try {
                     Main.bankObjectCreator.newObjectFile();
                     ++this.size;
-                    System.out.println(this.size);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -25,8 +24,14 @@ public class AccountWatcher extends Thread {
                 try {
                     Main.bankObjectCreator.newObjectFile();
                     --this.size;
-                    System.out.println(this.size);
                 } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (Bank.moneyChange){
+                try {
+                    Main.bankObjectCreator.newObjectFile();
+                    Bank.moneyChange = false;
+                } catch (Exception e){
                     e.printStackTrace();
                 }
             } else {
