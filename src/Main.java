@@ -74,15 +74,186 @@ public class Main {
     private static void createAccount(Scanner scanner, Bank bank) {
         System.out.print("Account holder name: ");
         String name = scanner.next();
-        if (bank.newAccount(name)){
+        if (bank.newAccount(name)) {
             System.out.println("\nAccount " + name + " has been created.\n");
         } else {
             System.out.println("\nError, account already exists, try a different name.\n");
         }
     }
-    private static void accessAccount(Scanner scanner, Bank bank) {
 
-        System.out.print("Enter account holder name: ");
+    private static void accessAccount(Scanner scanner, Bank bank) {
+        System.out.print("Enter account name: ");
+        String input = scanner.next();
+        Integer money;
+        System.out.println();
+
+        Account account = bank.getAccount(input);
+
+        if (account != null) {
+
+            String userName = bank.getAccountUserName(account);
+
+            System.out.println("Hello " + userName);
+
+            while (true) {
+
+                System.out.println("Which account do you want to access?");
+                System.out.print(bank.getAccountInnerAccountsString(account));
+                System.out.println();
+                System.out.print("bank > " + userName + " > ");
+                input = scanner.next();
+
+                switch (input) {
+                    case "back":
+                        return;
+
+                    case "new":
+                        System.out.print("Name of new account: ");
+                        input = scanner.next();
+
+                        if (bank.newInnerAccount(account, input)) {
+
+                            System.out.println("\nAccount " + input + " successfully created!");
+
+                        } else System.out.println("\nAccount " + input + " already exists.");
+
+                        break;
+
+                    case "delete":
+
+                        System.out.print("Name of account to delete: ");
+                        input = scanner.next();
+                        System.out.println();
+
+                        if (bank.innerAccountExists(account, input)) {
+
+                            if (bank.getAccountInnerAccount(account, input).getBalance() > 0) {
+
+                                System.out.println("You have £" + bank.getAccountBalance(bank.getAccountInnerAccount(account, input)) +
+                                        " on your " + bank.getAccountName(bank.getAccountInnerAccount(account, input)) + " account.");
+
+                                System.out.println("Please enter the name of another account to move your money to.");
+                                System.out.print(bank.getAccountInnerAccountsString(account).replace(" - " + bank.getAccountName(bank.getAccountInnerAccount(account, input)) + "\n", ""));
+                                System.out.println("Account name: ");
+
+                                String moveToInstance;
+                                while (true) {
+                                    moveToInstance = scanner.next();
+
+                                    if (moveToInstance.equals("back")) {
+                                        break;
+
+                                    } else if (bank.innerAccountExists(account, moveToInstance)) {
+
+                                        bank.addMoney(bank.getAccountInnerAccount(account, moveToInstance),
+                                                bank.getAccountBalance(bank.getAccountInnerAccount(account, input)));
+
+                                        System.out.println("Deleted account " + bank.getAccountName(bank.getAccountInnerAccount(account, input)) +
+                                                " and moved money to " + bank.getAccountName(bank.getAccountInnerAccount(account, moveToInstance)));
+
+                                        bank.deleteInnerAccount(account, input);
+
+                                        break;
+
+                                    } else {
+                                        System.out.println("Invalid account, try again or type back to cancel.");
+                                    }
+                                }
+
+                            } else {
+                                Account innerAccount = bank.getAccountInnerAccount(account, input);
+                                if (bank.deleteInnerAccount(account, input)) {
+                                    System.out.println("Account " + bank.getAccountName(innerAccount) + " has been successfully deleted!");
+                                } else System.out.println("Something went wrong, try again.");
+                            }
+
+                        } else System.out.println("Account " + input + " doesn't exist.");
+
+                        break;
+
+                    case "balance":
+                        System.out.println("\nYour total balance is: £" + bank.getTotalAccountBalance(account) + "\n");
+                        break;
+
+                    default:
+                        Account temp = account;
+                        if ((account = bank.getAccountInnerAccount(account, input)) != null) {
+
+                            String accountName = bank.getAccountName(account);
+
+                            while (true) {
+
+                                System.out.print("bank > " + userName + " > " + accountName + " > ");
+                                input = scanner.next();
+
+                                switch (input) {
+                                    case "add":
+                                        System.out.print("Enter amount add: £");
+                                        bank.addMoney(account, (money = scanner.nextInt()));
+                                        System.out.println("\nMoney: £" + money + " successfully added to your account.");
+                                        System.out.println("New balance: £" + bank.getAccountBalance(account) + "\n");
+                                        break;
+
+                                    case "remove":
+                                        System.out.println("Current balance: " + bank.getAccountBalance(account));
+                                        System.out.print("Enter amount to remove: £");
+
+                                        if (bank.removeMoney(account, (money = scanner.nextInt()))) {
+
+                                            System.out.println("\nMoney: " + money + "successfully removed from your account.");
+                                            System.out.println("New balance: £ " + bank.getAccountBalance(account) + "\n");
+
+                                        } else
+                                            System.out.println("\nCan't remove £" + money + ". Not enough money in account.");
+
+                                        break;
+
+                                    case "balance":
+                                        System.out.println("\nAccount balance: £" + bank.getAccountBalance(account) + "\n");
+                                        break;
+                                }
+                                if (input.equals("back")) {
+                                    account = temp;
+                                    break;
+                                }
+
+                            }
+
+                        } else {
+                            account = temp;
+                            System.out.println("\nAccount " + input + " doesn't exist, try again.");
+                            System.out.println("Type back to go back.");
+                            System.out.println();
+                        }
+                        break;
+                }
+            }
+
+
+        } else {
+            System.out.println("Account: " + input + ", doesn't exist.");
+        }
+    }
+
+    private static void deleteAccount(Scanner scanner, Bank bank) {
+
+        System.out.print("Account holder name to delete: ");
+        String input = scanner.next();
+
+        if (bank.deleteAccount(input)) {
+            System.out.println("\nAccount: " + input + ", successfully deleted!\n");
+        } else {
+            System.out.println("\nNo more accounts to delete.\n");
+        }
+    }
+}
+
+
+
+
+/*
+
+System.out.print("Enter account holder name: ");
         String input = scanner.next();
         System.out.println();
 
@@ -90,12 +261,12 @@ public class Main {
 
         if (account != null) {
 
-            System.out.println("Hello " + account.getName() + "!");
+            System.out.println("Hello " + account.getUserName() + "!");
             System.out.println("What do you want to do?");
             System.out.println();
 
             Integer money;
-            String accountName = account.getName();
+            String accountName = account.getUserName();
 
             while (true) {
 
@@ -180,16 +351,5 @@ public class Main {
         } else {
             System.out.println("Account: " + input + ", doesn't exist.");
         }
-    }
-    private static void deleteAccount(Scanner scanner, Bank bank) {
 
-        System.out.print("Account holder name to delete: ");
-        String input = scanner.next();
-
-        if (bank.deleteAccount(input)) {
-            System.out.println("\nAccount: " + input + ", successfully deleted!\n");
-        } else {
-            System.out.println("\nNo more accounts to delete.\n");
-        }
-    }
-}
+* */

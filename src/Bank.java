@@ -23,36 +23,20 @@ public class Bank implements Serializable {
         this.acceptableNotes.add(5);
     }
 
-    public List<Account> getAccounts() {
-        return this.accounts;
-    }
-
-    public boolean newAccount(String name) {
-        if (!accountExists(name)){
+    public boolean newAccount(String accountName) {
+        if (!accountExists(accountName)) {
             synchronized (this.accounts) {
-                this.accounts.add(new Account(name));
+                this.accounts.add(new Account(accountName));
                 this.accounts.notify();
             }
             return true;
         }
         return false;
     }
-
-    public Account getAccount(String name) {
+    public boolean deleteAccount(String accountName) {
         if (this.accounts != null && this.accounts.size() > 0) {
             for (Account account : this.accounts) {
-                if (account.getName().equals(name)) {
-                    return account;
-                }
-            }
-        }
-        return null;
-    }
-
-    public boolean deleteAccount(String name) {
-        if (this.accounts != null && this.accounts.size() > 0) {
-            for (Account account : this.accounts) {
-                if (account.getName().equals(name)) {
+                if (account.getUserName().equals(accountName)) {
                     synchronized (this.accounts) {
                         this.totalBankMoney -= account.getBalance();
                         this.accounts.remove(account);
@@ -64,11 +48,10 @@ public class Bank implements Serializable {
         }
         return false;
     }
-
-    public boolean addMoney(Account account, int money) {
+    public boolean addMoney(Account accountObject, double money) {
         if (money > 0) {
             synchronized (this.accounts) {
-                account.setBalance(account.getBalance() + money);
+                accountObject.setBalance(accountObject.getBalance() + money);
                 moneyChange = true;
                 this.totalBankMoney += money;
                 this.accounts.notify();
@@ -77,17 +60,16 @@ public class Bank implements Serializable {
         }
         return false;
     }
-
-    public boolean removeMoney(Account account, int money) {
+    public boolean removeMoney(Account accountObject, int money) {
         if (money > 0) {
-            double balance = account.getBalance();
+            double balance = accountObject.getBalance();
             if (balance == 0) {
                 return false;
             } else if (balance - money < 0) {
                 return false;
             } else {
                 synchronized (this.accounts) {
-                    account.setBalance(balance - money);
+                    accountObject.setBalance(balance - money);
                     moneyChange = true;
                     this.totalBankMoney -= money;
                     this.accounts.notify();
@@ -96,7 +78,13 @@ public class Bank implements Serializable {
             }
         } else return false;
     }
-
+    public boolean newInnerAccount(Account accountObject, String accountName) {
+        return accountObject.newInnerAccount(accountName);
+    }
+    public boolean deleteInnerAccount(Account accountObject, String accountName) {
+        this.totalBankMoney -= accountObject.getInnerAccount(accountName).getBalance();
+        return accountObject.deleteInnerAccount(accountName);
+    }
     private boolean isValidMoneyInput(int number, int position, ArrayList<Integer> integers) {
         if (number % integers.get(position) != 0 && position != 3) {
             return isValidMoneyInput(number, ++position, integers);
@@ -108,17 +96,50 @@ public class Bank implements Serializable {
 
         }*/
     }
-    private boolean accountExists(String name) {
+    private boolean accountExists(String accountName) {
         if (this.accounts != null && this.accounts.size() > 0) {
             for (Account account : accounts) {
-                if (account.getName().equals(name)) {
+                if (account.getUserName().equals(accountName)) {
                     return true;
                 }
             }
         }
         return false;
     }
-
+    public boolean innerAccountExists(Account accountObject, String accountName){
+        return accountObject.getInnerAccount(accountName) != null;
+    }
+    public double getAccountBalance(Account accountObject) {
+        return accountObject.getBalance();
+    }
+    public double getTotalAccountBalance(Account accountObject) {
+        return accountObject.getTotalAccountBalance();
+    }
+    public List<Account> getAccounts() {
+        return this.accounts;
+    }
+    public Account getAccount(String accountName) {
+        if (this.accounts != null && this.accounts.size() > 0) {
+            for (Account account : this.accounts) {
+                if (account.getUserName().equals(accountName)) {
+                    return account;
+                }
+            }
+        }
+        return null;
+    }
+    public Account getAccountInnerAccount(Account accountObject, String accountName) {
+        return accountObject.getInnerAccount(accountName);
+    }
+    public String getAccountInnerAccountsString(Account accountObject) {
+        return accountObject.getInnerAccountsToString();
+    }
+    public String getAccountName(Account accountObject) {
+        return accountObject.getAccountName();
+    }
+    public String getAccountUserName(Account accountObject) {
+        return accountObject.getUserName();
+    }
     @Override
     public String toString() {
 
@@ -127,7 +148,7 @@ public class Bank implements Serializable {
             stringBuilder.append("Total money: £").append(totalBankMoney).append("\n");
 
             for (Account account : this.accounts) {
-                stringBuilder.append("Name: ").append(account.getName()).append("\n");
+                stringBuilder.append("Name: ").append(account.getUserName()).append("\n");
             }
 
             return stringBuilder.toString();
